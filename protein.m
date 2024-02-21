@@ -31,7 +31,7 @@ user_info.ligand_id = ligand_id;
 user_info.chain_id = chain_id;
 user_info.idcode = idcode;
 
-% Get only the Ligand's Atoms the are as the same of the chain_id (or all ligands)
+% Get only the Ligand's Atoms that are as the same of the chain_id (or all ligands)
 foreign_atoms = retrieve_data_for_chain(pdb_data.Model.HeterogenAtom, chain_id);
 
 % Getting Atoms of the specific LIgand (first_heterogen_name.hetID)
@@ -49,27 +49,28 @@ user_info.end_index_atoms = end_index_atoms;
 binary = zeros(1, length([user_info.protein_atoms.AtomSerNo]));
 i = 1;
 for x = [user_info.protein_atoms.AtomSerNo]
-    a = x == [user_info.protein_atoms(user_info.start_index_atoms).AtomSerNo];%try to change the original
+    a = x == [user_info.protein_atoms(user_info.start_index_atoms).AtomSerNo];%check if x is an serNum of amino acid's start atom
     if any(a)
-        binary(i) = 1;
+        binary(i) = 1; %mark this atom as a start atom
     end
     i = i + 1;
 end
-protein_atoms_subset = user_info.protein_atoms(logical(binary));
+protein_atoms_subset = user_info.protein_atoms(logical(binary)); %convery binary from double to logic
 
-%save the names of all amino acid chosen
+%save the names of all amino acid
 user_info.resNames = strtrim({protein_atoms_subset.resName});
 
 %get backbone atoms coordinates
 backbone_coordinates = retrieve_backbone_coordinates(user_info);
-spatial_presentation = figure;
-% Use the coordinates variable to plot a 3D scatter graph
- 
+spatial_presentation = figure; %open new graphic window
+
+% Use the coordinates variable to plot a 3D scatter graph 
 scatter3(backbone_coordinates(:,1), backbone_coordinates(:,2), backbone_coordinates(:,3),"cyan","filled",".");
 line(backbone_coordinates(:,1), backbone_coordinates(:,2), backbone_coordinates(:,3))
 xlabel('X Coordinate');
 ylabel('Y Coordinate');
 zlabel('Z Coordinate');
+axis;
 title('3D Scatter Plot of Atoms');
 hold on; % Keep the plot window open
 
@@ -93,13 +94,14 @@ xlabel('Distance');
 ylabel('counts');
 title(text);
 heatm = figure('visible','off');
-minmax_dis2 = struct("min_distance",[min(dis_metrix(:))], "max_distance",[min(dis_metrix(:)) * 10]);
+minmax_dis2 = struct("min_distance",[min(dis_metrix(:))], "max_distance",[max(dis_metrix(:))]);
 while true
   figure(histograma);
   minmax_dis2 = receive_user_input(minmax_dis2);
   figure(heatm);
   %clf;
   graphical_display_of_the_mutual_distances(user_info, dis_metrix, minmax_dis2)
+
   %ask the user for exiting or repeating the loop
   answer1 = questdlg("would you like to change the minimum or the maximum distance?");
   switch answer1
@@ -121,7 +123,7 @@ figure(spatial_presentation);
 % Add a title to the graph
 title(text);
 %struct of colors
-colors = winter(length(amino_acids));
+colors = cool(length(amino_acids));
 % Cell array for curve titles
 curveTitles = {};
 % Cell for ID-chain backbone characters
@@ -166,4 +168,4 @@ switch answer
         break;
 end
 
-end %of main script
+end %of main script loop
